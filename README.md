@@ -32,7 +32,7 @@ An automated news parsing service built with Symfony 5.4 that fetches and stores
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/news-parser.git
+git clone https://github.com/tulbadex/symfony-docker-parser.git
 cd news-parser
 ```
 
