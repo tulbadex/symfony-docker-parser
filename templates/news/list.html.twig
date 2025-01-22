@@ -1,0 +1,51 @@
+{# templates/news/list.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}News Articles{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>News Articles</h1>
+
+    <div class="row">
+        {% for article in articles %}
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    {% if article.imageUrl %}
+                        <img src="{{ article.imageUrl }}" class="card-img-top" alt="{{ article.title }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ article.title }}</h5>
+                        <p class="card-text">{{ article.shortDescription }}</p>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                Added: {{ article.dateAdded|ago }}
+                            </small>
+                        </p>
+                        <a href="{{ article.url }}" class="btn btn-primary" target="_blank">Read More</a>
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <form method="post" action="{{ path('news_delete', {'id': article.id}) }}" onsubmit="return confirm('Are you sure?');" class="mt-2">
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if articles|length > 0 %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% for i in 1..total_pages %}
+                    <li class="page-item {{ page == i ? 'active' : '' }}">
+                        <a class="page-link" href="{{ path('news_list', {'page': i}) }}">{{ i }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </nav>
+    {% else %}
+        <p class="text-center">No articles found.</p>
+    {% endif %}
+</div>
+{% endblock %}

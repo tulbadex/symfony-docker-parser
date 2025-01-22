@@ -1,0 +1,37 @@
+framework:
+    messenger:
+        # reset services after consuming messages
+        reset_on_message: true
+        failure_transport: failed
+
+        transports:
+            # https://symfony.com/doc/current/messenger.html#transport-configuration
+            async:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    exchange:
+                        name: messages
+                        # type: direct
+                        # type: fanout
+                        # default_publish_routing_key: messages
+                    queues:
+                        messages: ~
+                retry_strategy:
+                    max_retries: 3
+                    multiplier: 2
+            failed: 'doctrine://default?queue_name=failed'
+            # sync: 'sync://'
+
+        default_bus: messenger.bus.default
+
+        buses:
+            messenger.bus.default: []
+
+        routing:
+            Symfony\Component\Mailer\Messenger\SendEmailMessage: async
+            Symfony\Component\Notifier\Message\ChatMessage: async
+            Symfony\Component\Notifier\Message\SmsMessage: async
+
+            # Route your messages to the transports
+            # 'App\Message\YourMessage': async
+            'App\Message\ParseArticleMessage': async

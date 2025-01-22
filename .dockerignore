@@ -1,0 +1,22 @@
+# Ignore everything
+*
+
+# Except these files and directories
+!composer.json
+!composer.lock
+!src/
+!public/
+!config/
+!docker/
+!fastcgi-php.conf/
+!migrations/
+!bin/
+!templates/
+!tests/
+!translations/
+!vendor/
+!phpunit.xml.dist
+!docker-compose.yml
+!Dockerfile
+!crontab
+!entrypoint.sh
