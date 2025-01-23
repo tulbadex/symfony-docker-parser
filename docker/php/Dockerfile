@@ -1,6 +1,6 @@
 FROM php:7.4-fpm-alpine
 
-# Install system dependencies all at once to reduce layers
+# Install system dependencies
 RUN apk update && apk add --no-cache \
     git \
     curl \
@@ -28,7 +28,7 @@ RUN apk update && apk add --no-cache \
     libzip-dev \
     && setcap 'cap_setgid=+ep' /bin/busybox
 
-# Configure and install PHP extensions in a single layer
+# Configure and install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-configure intl \
     && docker-php-ext-install -j$(nproc) \
@@ -43,11 +43,8 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
         zip \
         intl \
     && pecl channel-update pecl.php.net \
-    && pecl install amqp \
-    && docker-php-ext-enable amqp
-
-# Set up permissions and capabilities
-# RUN setcap 'cap_setgid=+ep' /bin/busybox
+    && pecl install amqp redis \
+    && docker-php-ext-enable amqp redis
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -55,40 +52,32 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer \
     PATH=/composer/vendor/bin:$PATH
 
-# Add these lines to your Dockerfile
-RUN mkdir -p /var/run \
-    && chmod 755 /var/run \
-    && mkdir -p /var/log \
-    && chmod 755 /var/log
-
 # Create necessary directories and files
-RUN mkdir -p /var/log /etc/supervisor /var/www/html/var \
+RUN mkdir -p /var/log/php-fpm \
     && mkdir -p /var/run/supervisor \
-    # && touch /var/log/cron.log \
+    && mkdir -p /var/log/nginx \
     && touch /var/log/supervisor.log \
-    # && chmod 0777 /var/log/cron.log \
-    && chmod 0777 /var/log/supervisor.log
-    # && mkdir -p /etc/cron.d \
-    # && touch /var/log/news_parser.log \
-    # && chmod 0777 /var/log/news_parser.log
+    && touch /var/log/php-fpm/error.log \
+    && touch /var/log/nginx/error.log \
+    && touch /var/log/nginx/access.log \
+    && chmod 0777 /var/log/supervisor.log \
+    && chmod 0777 /var/log/php-fpm/error.log \
+    && chmod 0777 /var/log/nginx/error.log \
+    && chmod 0777 /var/log/nginx/access.log
 
 # Copy configuration files
 COPY supervisor.conf /etc/supervisor/supervisord.conf
-# COPY crontab /etc/cron.d/symfony-cron
 COPY docker-entrypoint.sh /usr/local/bin/
+COPY php-fpm.conf /usr/local/etc/php-fpm.d/custom.conf
 
-# Set up permissions
-# RUN chmod 0644 /etc/cron.d/symfony-cron \
-#     && chmod +x /usr/local/bin/docker-entrypoint.sh \
-#     && crontab /etc/cron.d/symfony-cron
+# Set up permissions for entrypoint script
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Clean up
+# Clean up unnecessary packages and temporary files
 RUN apk del autoconf gcc g++ make \
     && rm -rf /tmp/* /var/cache/apk/*
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-# CMD ["sh", "-c", "crond -f -l 8 & /usr/bin/supervisord -c /etc/supervisor.d/supervisord.conf & php-fpm"]

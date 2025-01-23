@@ -14,24 +14,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_started
-    environment:
-      # Database
-      DATABASE_URL: mysql://${DATABASE_USER:-news_user}:${DATABASE_PASSWORD:-news_password}@mysql:3306/${DATABASE_NAME:-news_parser}?serverVersion=8&charset=utf8mb4
-      MYSQL_HOST: mysql
-      MYSQL_USER: ${DATABASE_USER:-news_user}
-      MYSQL_PASSWORD: ${DATABASE_PASSWORD:-news_password}
-      MYSQL_DATABASE: ${DATABASE_NAME:-news_parser}
-      
-      # RabbitMQ
-      MESSENGER_TRANSPORT_DSN: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASS:-guest}@rabbitmq:5672/%2f/messages
-      RABBITMQ_HOST: rabbitmq
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
-      
-      # Application
-      APP_ENV: ${APP_ENV:-dev}
-      APP_DEBUG: ${APP_DEBUG:-0}
-      SYMFONY_ENV: ${APP_ENV:-dev}
+      redis:
+        condition: service_started
     env_file: 
       - .env
 
@@ -52,12 +36,12 @@ services:
     image: mysql:8.0
     command: --default-authentication-plugin=mysql_native_password
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-admin}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-news_parser}
-      MYSQL_USER: ${MYSQL_USER:-news_user}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-news_password}
-      MYSQL_CHARSET: utf8mb4
-      MYSQL_COLLATION: utf8mb4_unicode_ci
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DATABASE_NAME}
+      MYSQL_USER: ${DATABASE_USER}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_CHARSET: ${MYSQL_CHARSET}
+      MYSQL_COLLATION: ${MYSQL_COLLATION}
     ports:
       - "3308:3306"
     volumes:
@@ -65,7 +49,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u${MYSQL_USER}", "-p${MYSQL_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u${MYSQL_USER}", "-p${DATABASE_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -77,8 +61,15 @@ services:
       - "5672:5672"
       - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    networks:
+      - app-network
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
     networks:
       - app-network
 

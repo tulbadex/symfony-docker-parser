@@ -5,7 +5,7 @@ An automated news parsing service built with Symfony 5.4 that fetches and stores
 ## Features
 
 - Automated news parsing with parallel processing
-- Role-based authentication (Admin/Moderator)
+- Role-based authentication (Admin/User)
 - Article management with pagination
 - Duplicate detection and update tracking
 - Optimized database queries for high load
@@ -51,7 +51,7 @@ cp .env example.env
 2. Update these variables in `example.env`:
 ```
 DATABASE_URL=
-RABBITMQ_URL=
+MESSENGER_TRANSPORT_DSN=
 APP_SECRET=
 ```
 

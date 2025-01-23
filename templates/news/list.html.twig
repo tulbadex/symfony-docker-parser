@@ -12,7 +12,7 @@
             <div class="col-md-6 mb-4">
                 <div class="card h-100">
                     {% if article.imageUrl %}
-                        <img src="{{ article.imageUrl }}" class="card-img-top" alt="{{ article.title }}">
+                        <img src="{{ article.imageUrl }}" class="card-img-top" alt="{{ article.title }}" loading="lazy">
                     {% endif %}
                     <div class="card-body">
                         <h5 class="card-title">{{ article.title }}</h5>
@@ -34,17 +34,58 @@
         {% endfor %}
     </div>
 
-    {% if articles|length > 0 %}
+    {% if total_pages > 1 %}
         <nav aria-label="Page navigation" class="mt-4">
             <ul class="pagination justify-content-center">
-                {% for i in 1..total_pages %}
+                {# Previous button #}
+                {% if page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ path('news_list', {'page': page - 1}) }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {# First page #}
+                {% if page > 3 %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ path('news_list', {'page': 1}) }}">1</a>
+                    </li>
+                    {% if page > 4 %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endif %}
+
+                {# Page numbers #}
+                {% for i in max(1, page - 2)..min(total_pages, page + 2) %}
                     <li class="page-item {{ page == i ? 'active' : '' }}">
                         <a class="page-link" href="{{ path('news_list', {'page': i}) }}">{{ i }}</a>
                     </li>
                 {% endfor %}
+
+                {# Last page #}
+                {% if page < total_pages - 2 %}
+                    {% if page < total_pages - 3 %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ path('news_list', {'page': total_pages}) }}">{{ total_pages }}</a>
+                    </li>
+                {% endif %}
+
+                {# Next button #}
+                {% if page < total_pages %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ path('news_list', {'page': page + 1}) }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
             </ul>
         </nav>
-    {% else %}
+    {% endif %}
+
+    {% if articles|length == 0 %}
         <p class="text-center">No articles found.</p>
     {% endif %}
 </div>

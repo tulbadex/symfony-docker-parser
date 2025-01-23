@@ -16,6 +16,12 @@ framework:
     #fragments: true
     php_errors:
         log: true
+    
+    # cache:
+    #     pools:
+    #         news_cache:
+    #             adapter: cache.adapter.redis
+    #             default_lifetime: 3600
 
 when@test:
     framework:
